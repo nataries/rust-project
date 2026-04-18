@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "name": "Начало",
+      "description": "Стартовая точка сценария",
+      "node_type": "Action"
+    },
+    {
+      "id": "check_auth",
+      "name": "Проверка авторизации",
+      "description": "Ветвление по статусу авторизации",
+      "node_type": "Branch",
+      "branches": [
+        {
+          "description": "Пользователь авторизован",
+          "condition": "is_auth == true",
+          "target": "main_menu"
+        },
+        {
+          "description": "Пользователь не авторизован",
+          "condition": "is_auth == false",
+          "target": "login"
+        }
+      ]
+    },
+    {
+      "id": "login",
+      "name": "Страница входа",
+      "description": "Ввод логина и пароля",
+      "node_type": "Action"
+    },
+    {
+      "id": "main_menu",
+      "name": "Главное меню",
+      "description": "Основное меню приложения",
+      "node_type": "Action"
+    },
+    {
+      "id": "logout",
+      "name": "Выход",
+      "description": "Завершение сессии",
+      "node_type": "Action"
+    },
+    {
+      "id": "end",
+      "name": "Конец",
+      "description": "Завершение сценария",
+      "node_type": "End"
+    }
+  ],
+  "edges": [
+    {
+      "from": "start",
+      "to": "check_auth"
+    },
+    {
+      "from": "login",
+      "to": "end"
+    },
+    {
+      "from": "main_menu",
+      "to": "logout"
+    },
+    {
+      "from": "logout",
+      "to": "end"
+    }
+  ]
+}
