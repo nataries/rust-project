@@ -65,6 +65,26 @@ impl Graph {
         Ok(())
     }
 
+      pub fn get_neighbors(&self, node_id: &str) -> Vec<(String, Option<String>)> {
+        let mut neighbors = Vec::new();
+        
+        if let Some(node) = self.nodes.get(node_id) {
+            if node.node_type == NodeType::Branch {
+                for branch in &node.branches {
+                    neighbors.push((branch.target.clone(), branch.condition.clone()));
+                }
+            }
+        }
+        
+        for edge in &self.edges {
+            if edge.from == node_id {
+                neighbors.push((edge.to.clone(), edge.condition.clone()));
+            }
+        }
+        
+        neighbors
+    }
+
     pub fn get_start_nodes(&self) -> Vec<String> {
         let mut has_incoming = std::collections::HashSet::new();
         
