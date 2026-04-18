@@ -84,4 +84,41 @@ async fn find_paths_from_start(
     results
 }
 
-
+pub fn export_to_dot(graph: &Graph, _paths: &[PathResult]) -> String {
+    let mut dot = "digraph G {\n".to_string();
+    dot.push_str("    rankdir=TB;\n");
+    dot.push_str("    node [shape=box, style=filled];\n");
+    
+    for (id, node) in &graph.nodes {
+        let color = match node.node_type {
+            crate::graph::NodeType::Action => "lightblue",
+            crate::graph::NodeType::Branch => "lightgreen",
+            crate::graph::NodeType::End => "lightcoral",
+        };
+        
+        let label = format!("{}\n{}", node.name, node.description.as_deref().unwrap_or(""));
+        dot.push_str(&format!("    \"{}\" [label=\"{}\", fillcolor={}];\n", id, label, color));
+    }
+    
+    for edge in &graph.edges {
+        let label = edge.description.as_deref().unwrap_or("");
+        if label.is_empty() {
+            dot.push_str(&format!("    \"{}\" -> \"{}\";\n", edge.from, edge.to));
+        } else {
+            dot.push_str(&format!("    \"{}\" -> \"{}\" [label=\"{}\"];\n", edge.from, edge.to, label));
+        }
+    }
+    
+    for node in graph.nodes.values() {
+        if node.node_type == crate::graph::NodeType::Branch {
+            for branch in &node.branches {
+                let label = branch.description.replace("\"", "\\\"");
+                dot.push_str(&format!("    \"{}\" -> \"{}\" [label=\"{}\", color=blue];\n", 
+                    node.id, branch.target, label));
+            }
+        }
+    }
+    
+    dot.push_str("}\n");
+    dot
+}
