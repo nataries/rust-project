@@ -122,3 +122,34 @@ pub fn export_to_dot(graph: &Graph, _paths: &[PathResult]) -> String {
     dot.push_str("}\n");
     dot
 }
+pub fn export_to_mermaid(graph: &Graph, _paths: &[PathResult]) -> String {
+    let mut mermaid = "graph TD\n".to_string();
+    
+    for (id, node) in &graph.nodes {
+        let shape = match node.node_type {
+            crate::graph::NodeType::Action=> "",
+            crate::graph::NodeType::Branch => "{{",
+            crate::graph::NodeType::End => "(((",
+        };
+        
+        let label = format!("{}
+{}", node.name, node.description.as_deref().unwrap_or(""));
+        mermaid.push_str(&format!("    {}{}[\"{}\"]{}\n", shape, id, label, shape));
+    }
+    
+    for edge in &graph.edges {
+        mermaid.push_str(&format!("    {} --> {}\n", edge.from, edge.to));
+    }
+    
+    for node in graph.nodes.values() {
+        if node.node_type == crate::graph::NodeType::Branch {
+            for branch in &node.branches {
+                let label = branch.description.replace("\"", "\\\"");
+                mermaid.push_str(&format!("    {} -->|{}| {}\n", 
+                    node.id, label, branch.target));
+            }
+        }
+    }
+    
+    mermaid
+}
