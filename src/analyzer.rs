@@ -122,31 +122,43 @@ pub fn export_to_dot(graph: &Graph, _paths: &[PathResult]) -> String {
     dot.push_str("}\n");
     dot
 }
+
 pub fn export_to_mermaid(graph: &Graph, _paths: &[PathResult]) -> String {
-    let mut mermaid = "graph TD\n".to_string();
+    let mut mermaid = String::new();
+    mermaid.push_str("flowchart TB\n");
     
     for (id, node) in &graph.nodes {
-        let shape = match node.node_type {
-            crate::graph::NodeType::Action=> "",
-            crate::graph::NodeType::Branch => "{{",
-            crate::graph::NodeType::End => "(((",
-        };
-        
-        let label = format!("{}
-{}", node.name, node.description.as_deref().unwrap_or(""));
-        mermaid.push_str(&format!("    {}{}[\"{}\"]{}\n", shape, id, label, shape));
+        let name = node.name.replace("\"", "\\\"");
+        match node.node_type {
+            crate::graph::NodeType::Action => {
+                mermaid.push_str(&format!("    {0}[\"{1}\"]\n", id, name));
+            }
+            crate::graph::NodeType::Branch => {
+                mermaid.push_str(&format!("    {0}{{\"{1}\"}}\n", id, name));
+            }
+            crate::graph::NodeType::End => {
+                mermaid.push_str(&format!("    {0}(\"{1}\")\n", id, name));
+            }
+        }
     }
+    
+    mermaid.push_str("\n");
     
     for edge in &graph.edges {
         mermaid.push_str(&format!("    {} --> {}\n", edge.from, edge.to));
     }
     
+    mermaid.push_str("\n");
+    
     for node in graph.nodes.values() {
         if node.node_type == crate::graph::NodeType::Branch {
             for branch in &node.branches {
-                let label = branch.description.replace("\"", "\\\"");
-                mermaid.push_str(&format!("    {} -->|{}| {}\n", 
-                    node.id, label, branch.target));
+                let cond = branch.condition.as_deref().unwrap_or("");
+                if !cond.is_empty() {
+                    mermaid.push_str(&format!("    {} -->|{}| {}\n", node.id, cond, branch.target));
+                } else {
+                    mermaid.push_str(&format!("    {} --> {}\n", node.id, branch.target));
+                }
             }
         }
     }

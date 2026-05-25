@@ -1,0 +1,17 @@
+```mermaid
+flowchart TB
+    start["Начало"]
+    end_node("Конец")
+    login["Страница входа"]
+    main_menu["Главное меню"]
+    check_auth{"Проверка авторизации"}
+    logout["Выход"]
+
+    start --> check_auth
+    login --> end_node
+    main_menu --> logout
+    logout --> end_node
+
+    check_auth -->|is_auth == true| main_menu
+    check_auth -->|is_auth == false| login
+```
